@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import * as React from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -11,6 +12,11 @@ const Auth = () => {
   const [mode, setMode] = React.useState<"login" | "signup">("login");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [firstName, setFirstName] = React.useState("");
+  const [lastName, setLastName] = React.useState("");
+  const [age, setAge] = React.useState("");
+  const [phone, setPhone] = React.useState("");
+  const [role, setRole] = React.useState<"patient" | "doctor" | "admin">("patient");
   const [loading, setLoading] = React.useState(false);
 
   const redirectUrl = `${window.location.origin}/`;
@@ -38,11 +44,28 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      // Validation des champs requis
+      if (!firstName.trim() || !lastName.trim() || !age.trim()) {
+        throw new Error("Veuillez remplir tous les champs obligatoires");
+      }
+      
+      const ageNumber = parseInt(age);
+      if (isNaN(ageNumber) || ageNumber <= 0 || ageNumber >= 150) {
+        throw new Error("Veuillez entrer un âge valide (1-149)");
+      }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: redirectUrl },
       });
+          data: {
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+            age: ageNumber,
+            phone: phone.trim() || null,
+            role: role
+          }
       if (error) throw error;
       toast.success("Inscription réussie", { description: "Vérifiez votre email pour confirmer." });
     } catch (err: any) {
@@ -77,6 +100,41 @@ const Auth = () => {
                 <label className="text-sm" htmlFor="password">Mot de passe</label>
                 <Input id="password" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} required />
               </div>
+              
+              {mode === "signup" && (
+                <>
+                  <div className="space-y-2">
+                    <label className="text-sm" htmlFor="firstName">Prénom *</label>
+                    <Input id="firstName" type="text" value={firstName} onChange={(e)=>setFirstName(e.target.value)} required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm" htmlFor="lastName">Nom *</label>
+                    <Input id="lastName" type="text" value={lastName} onChange={(e)=>setLastName(e.target.value)} required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm" htmlFor="age">Âge *</label>
+                    <Input id="age" type="number" min="1" max="149" value={age} onChange={(e)=>setAge(e.target.value)} required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm" htmlFor="phone">Téléphone</label>
+                    <Input id="phone" type="tel" value={phone} onChange={(e)=>setPhone(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm" htmlFor="role">Rôle *</label>
+                    <Select value={role} onValueChange={(value: "patient" | "doctor" | "admin") => setRole(value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionnez votre rôle" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="patient">Patient</SelectItem>
+                        <SelectItem value="doctor">Docteur</SelectItem>
+                        <SelectItem value="admin">Administrateur</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+              
               <Button disabled={loading} type="submit" className="w-full">
                 {loading ? "Veuillez patienter…" : (mode === "login" ? "Se connecter" : "Créer un compte")}
               </Button>
