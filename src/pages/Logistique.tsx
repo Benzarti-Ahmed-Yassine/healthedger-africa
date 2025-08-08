@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import * as React from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const formatTime = (t: number) => new Date(t).toLocaleTimeString();
 
@@ -112,6 +113,22 @@ const Logistique = () => {
         <section className="mt-8 flex gap-3">
           <Button onClick={() => window.location.reload()}>Redémarrer</Button>
           <Button variant="outline" onClick={() => toast("Historique exporté (démo)")}>Exporter l’historique</Button>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              if (!latest) { toast("Aucune donnée à évaluer"); return; }
+              const { data, error } = await supabase.functions.invoke("iot-evaluate", {
+                body: { lotId, temperature: latest.temperature, humidity: latest.humidity, location: latest.location }
+              });
+              if (error) {
+                toast.error("Échec de l’évaluation", { description: error.message });
+              } else {
+                toast.success(`Évaluation: ${data.status}`, { description: data.message });
+              }
+            }}
+          >
+            Évaluer via Edge Function
+          </Button>
         </section>
       </main>
     </div>

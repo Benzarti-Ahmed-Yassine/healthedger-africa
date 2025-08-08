@@ -1,1 +1,4 @@
 project_id = "idzauxvceeaxyqrvmxoo"
+
+[functions.iot-evaluate]
+verify_jwt = false

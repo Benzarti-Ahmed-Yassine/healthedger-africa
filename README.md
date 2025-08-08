@@ -1,73 +1,54 @@
-# Welcome to your Lovable project
+# Hedera Santé Afrique — MVP
 
-## Project info
+Une plateforme décentralisée démonstrative pour la gestion sécurisée des données médicales, la traçabilité de la chaîne du froid et la gestion des consentements, bâtie avec React, Tailwind, shadcn-ui et Supabase.
 
-**URL**: https://lovable.dev/projects/da49a962-8d3f-4425-9af3-dac005d20b96
+## Démarrer
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/da49a962-8d3f-4425-9af3-dac005d20b96) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
+```bash
 npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 1) Comptes utilisateurs et connexion
+- Page d’authentification: /auth (email + mot de passe)
+- Connexion et inscription avec Supabase (redirection email configurée automatiquement)
+- Navbar dynamique: bouton Se connecter / Se déconnecter
+- Routes protégées: /patient, /pro-sante, /logistique nécessitent une session
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Conseils pour les tests:
+- Supabase > Authentication > Email: désactivez « Confirm email » pour accélérer les tests.
+- En cas de souci de session, un nettoyage robuste est appliqué lors de la déconnexion.
 
-**Use GitHub Codespaces**
+## 2) Données réelles (Supabase)
+- Profil: La page Patient charge votre profil depuis la table profiles (RLS activé)
+- Données physiologiques: Affiche les 10 dernières mesures de physiological_data pour votre profil
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Important:
+- Les règles RLS existantes permettent aux patients de lire leurs propres données (profiles, physiological_data)
+- Assurez-vous d’être connecté pour voir vos données
 
-## What technologies are used for this project?
+## 3) Fonction avancée (Edge Function)
+Une edge function publique « iot-evaluate » évalue chaque mesure IoT (température/humidité) et renvoie un statut (OK/ALERTE).
 
-This project is built with:
+- Code: supabase/functions/iot-evaluate/index.ts
+- CORS activé
+- Appelée depuis /logistique via Supabase Functions
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Accéder aux logs et au déploiement:
+- Functions: https://supabase.com/dashboard/project/idzauxvceeaxyqrvmxoo/functions
 
-## How can I deploy this project?
+## Structure
+- src/pages/Auth.tsx — Page d’authentification
+- src/components/auth/PrivateRoute.tsx — Protection des routes
+- src/pages/Patient.tsx — Profil + données physiologiques (Supabase)
+- src/pages/ProSante.tsx — Outils pro (démo)
+- src/pages/Logistique.tsx — Tableau IoT + appel edge function
+- src/hooks/use-iot-stream.ts & src/utils/iot-mock.ts — Flux IoT simulé (10s)
 
-Simply open [Lovable](https://lovable.dev/projects/da49a962-8d3f-4425-9af3-dac005d20b96) and click on Share -> Publish.
+## SEO & UI
+- Helmet pour balises title/description et canonical
+- Composants sémantiques et design tokens HSL
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Prochaines étapes
+- [Optionnel] Ajouter une edge function d’ingestion pour écrire dans physiological_data (nécessite SUPABASE_SERVICE_ROLE)
+- Intégrer Hedera (HCS/HTS) pour l’horodatage immuable et la gestion des jetons d’accès

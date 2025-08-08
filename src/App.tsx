@@ -11,6 +11,8 @@ import NotFound from "./pages/NotFound";
 import Patient from "./pages/Patient";
 import ProSante from "./pages/ProSante";
 import Logistique from "./pages/Logistique";
+import Auth from "./pages/Auth";
+import PrivateRoute from "./components/auth/PrivateRoute";
 
 const queryClient = new QueryClient();
 
@@ -24,9 +26,10 @@ const App = () => (
           <Navbar />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/patient" element={<Patient />} />
-            <Route path="/pro-sante" element={<ProSante />} />
-            <Route path="/logistique" element={<Logistique />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/patient" element={<PrivateRoute><Patient /></PrivateRoute>} />
+            <Route path="/pro-sante" element={<PrivateRoute><ProSante /></PrivateRoute>} />
+            <Route path="/logistique" element={<PrivateRoute><Logistique /></PrivateRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
